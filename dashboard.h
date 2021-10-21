@@ -21,7 +21,6 @@ public:
      * @param parent
      */
     explicit Dashboard(Settings *settings, QWidget *parent = nullptr);
-
     ~Dashboard();
 
 public slots:
@@ -30,14 +29,22 @@ public slots:
 private slots:
     void dummyAction(void);
     void trayActivated(const QSystemTrayIcon::ActivationReason& reason);
+    void setAdapter(const QString& adapter);
+    void on_dbbOkCancel_accepted();
+    void on_dbbOkCancel_rejected();
+    void on_chkCopyToClipboard_toggled(bool checked);
+    void on_pbSelectAdapter_clicked();
 
 private:
+    void updateSettingsView();
     void setupTray(void);
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     Ui::Dashboard *ui;
 
     Settings *settings_;
+    struct settings_type current_settings_;
 
     QMenu *tray_menu_;
     QAction *tray_action_open_;

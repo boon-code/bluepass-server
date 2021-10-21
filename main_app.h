@@ -18,6 +18,9 @@ signals:
 public slots:
     void start();
 
+private slots:
+    void on_configurationChanged(const settings_type &new_settings);
+
 private:
     Settings settings_;
     Dashboard dashboard_;

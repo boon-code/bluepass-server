@@ -1,10 +1,16 @@
 #include "dashboard.h"
 #include "ui_dashboard.h"
+#include "choose_adapter_dialog.h"
+
+#include <QCloseEvent>
+#include <QMenu>
+#include <QDebug>
 
 Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Dashboard),
     settings_(settings),
+    current_settings_(settings->settings()),
     tray_menu_(nullptr),
     tray_action_open_(nullptr),
     tray_action_copy_(nullptr),
@@ -15,7 +21,19 @@ Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     dummy_switch_(false)
 {
     ui->setupUi(this);
+    updateSettingsView();
     setupTray();
+}
+
+void Dashboard::updateSettingsView()
+{
+    if (current_settings_.adapter_address.isEmpty()) {
+        ui->labAdapter->setText(tr("No bluetooth adapter available"));
+    } else {
+        ui->labAdapter->setText(current_settings_.adapter_address);
+    }
+
+    ui->chkCopyToClipboard->setCheckState(current_settings_.auto_copy_clipboard ? Qt::CheckState::Checked : Qt::CheckState::Unchecked);
 }
 
 Dashboard::~Dashboard()
@@ -76,6 +94,11 @@ void Dashboard::trayActivated(const QSystemTrayIcon::ActivationReason &reason)
     }
 }
 
+void Dashboard::setAdapter(const QString &adapter)
+{
+    qDebug() << "Adapter " << adapter << " choosen";
+}
+
 void Dashboard::setupTray()
 {
     // Setup actions
@@ -99,4 +122,38 @@ void Dashboard::setupTray()
     tray_ = new QSystemTrayIcon(tray_icon_ok_, this);
     tray_->setContextMenu(tray_menu_);
     connect(tray_, &QSystemTrayIcon::activated, this, &Dashboard::trayActivated);
+}
+
+void Dashboard::closeEvent(QCloseEvent *event)
+{
+    event->ignore();
+    hide();
+}
+
+void Dashboard::on_dbbOkCancel_accepted()
+{
+    settings_->updateSettings(current_settings_);
+    settings_->saveSettings();
+    hide();
+}
+
+void Dashboard::on_dbbOkCancel_rejected()
+{
+    settings_->reloadSettingsOrDefaults();
+    current_settings_ = settings_->settings();
+    updateSettingsView();
+    hide();
+}
+
+void Dashboard::on_chkCopyToClipboard_toggled(bool checked)
+{
+    current_settings_.auto_copy_clipboard = checked;
+}
+
+void Dashboard::on_pbSelectAdapter_clicked()
+{
+    ChooseAdapterDialog *dialog = new ChooseAdapterDialog();
+    connect(dialog, &ChooseAdapterDialog::adapterChosen, this, &Dashboard::setAdapter);
+    dialog->exec();
+    dialog->deleteLater();
 }

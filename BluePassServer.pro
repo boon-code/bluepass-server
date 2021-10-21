@@ -23,7 +23,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        bluetooth_device_list_model.cpp \
         bluetooth_service.cpp \
+        choose_adapter_dialog.cpp \
         dashboard.cpp \
         main.cpp \
         main_app.cpp \
@@ -32,13 +34,16 @@ SOURCES += \
 
 HEADERS += \
         app_constants.h \
+        bluetooth_device_list_model.h \
         bluetooth_service.h \
+        choose_adapter_dialog.h \
         dashboard.h \
         main_app.h \
         settings.h \
         settings_type.h
 
 FORMS += \
+        choose_adapter_dialog.ui \
         dashboard.ui
 
 # Default rules for deployment.

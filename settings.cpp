@@ -11,12 +11,26 @@ Settings::Settings(QObject *parent)
       settings_storage_(ORG_NAME, APP_NAME),
       current_settings_()
 {
-    loadSettingsOrDefaults();
+    reloadSettingsOrDefaults();
+}
+
+const QString Settings::adapterAddress() const
+{
+    return current_settings_.adapter_address;
+}
+
+bool Settings::autoCopyCode() const
+{
+    return current_settings_.auto_copy_clipboard;
+}
+
+const settings_type Settings::settings() const
+{
+    return current_settings_;
 }
 
 void Settings::setAdapterAddress(const QString &address)
 {
-    settings_storage_.setValue(KEY_ADAPTER_ADDRESS, address);
     if (current_settings_.adapter_address != address) {
         current_settings_.adapter_address = address;
         emit settingsChanged(current_settings_);
@@ -25,7 +39,6 @@ void Settings::setAdapterAddress(const QString &address)
 
 void Settings::setAutoCopyCode(const bool enabled)
 {
-    settings_storage_.setValue(KEY_AUTO_COPY, enabled);
     if (current_settings_.auto_copy_clipboard != enabled) {
         current_settings_.auto_copy_clipboard = enabled;
         emit settingsChanged(current_settings_);
@@ -41,7 +54,13 @@ void Settings::updateSettings(const settings_type &new_settings)
      }
 }
 
-void Settings::loadSettingsOrDefaults()
+void Settings::saveSettings()
+{
+    settings_storage_.setValue(KEY_ADAPTER_ADDRESS, current_settings_.adapter_address);
+    settings_storage_.setValue(KEY_AUTO_COPY, current_settings_.auto_copy_clipboard);
+}
+
+void Settings::reloadSettingsOrDefaults()
 {
     struct settings_type new_settings;
     new_settings.adapter_address = settings_storage_.value(KEY_ADAPTER_ADDRESS, "").toString();

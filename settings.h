@@ -10,6 +10,9 @@ class Settings : public QObject
     Q_OBJECT
 public:
     explicit Settings(QObject *parent = nullptr);
+    const QString adapterAddress() const;
+    bool autoCopyCode() const;
+    const struct settings_type settings() const;
 
 signals:
     void settingsChanged(const settings_type& s);
@@ -18,6 +21,8 @@ public slots:
     void setAdapterAddress(const QString& address);
     void setAutoCopyCode(const bool enabled);
     void updateSettings(const settings_type& new_settings);
+    void saveSettings();
+    void reloadSettingsOrDefaults();
 
 private:
     void loadSettingsOrDefaults();

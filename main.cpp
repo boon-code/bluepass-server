@@ -13,7 +13,5 @@ int main(int argc, char *argv[])
     MainApp main_app;
     main_app.start();
 
-    qDebug() << "Address: " << QBluetoothAddress();
-
     return a.exec();
 }
