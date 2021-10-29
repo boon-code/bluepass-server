@@ -6,24 +6,25 @@
 
 MainApp::MainApp(QObject *parent)
     : QObject(parent),
-      settings_(),
-      dashboard_(&settings_)
+      settings_(new Settings()),
+      dashboard_(new Dashboard(settings_)),
+      bt_service_(new BluetoothService())
 {
-    connect(&settings_, &Settings::settingsChanged, this, &MainApp::on_configurationChanged);
-    connect(&dashboard_, &Dashboard::quit, this, &MainApp::on_quit);
-    connect(&dashboard_, &Dashboard::discoverableChanged, &bt_service_, &BluetoothService::setDiscoverable);
-    connect(&bt_service_, &BluetoothService::codeReceived, &dashboard_, &Dashboard::newCode);
-    connect(&bt_service_, &BluetoothService::started, &dashboard_, &Dashboard::setBtServiceStarted);
-    connect(&bt_service_, &BluetoothService::stopped, &dashboard_, &Dashboard::setBtServiceStopped);
-    connect(&bt_service_, &BluetoothService::bindFailed, &dashboard_, &Dashboard::setBtServiceStopped);
+    connect(settings_, &Settings::settingsChanged, this, &MainApp::on_configurationChanged);
+    connect(dashboard_, &Dashboard::quit, this, &MainApp::on_quit);
+    connect(dashboard_, &Dashboard::discoverableChanged, bt_service_, &BluetoothService::setDiscoverable);
+    connect(bt_service_, &BluetoothService::codeReceived, dashboard_, &Dashboard::newCode);
+    connect(bt_service_, &BluetoothService::started, dashboard_, &Dashboard::setBtServiceStarted);
+    connect(bt_service_, &BluetoothService::stopped, dashboard_, &Dashboard::setBtServiceStopped);
+    connect(bt_service_, &BluetoothService::bindFailed, dashboard_, &Dashboard::setBtServiceStopped);
 }
 
 void MainApp::start()
 {
-    dashboard_.start();
-    QString addr = settings_.settings().adapter_address;
+    dashboard_->start();
+    QString addr = settings_->settings().adapter_address;
     if (!addr.isEmpty()) {
-        bt_service_.start(addr);
+        bt_service_->start(addr);
     }
 }
 
@@ -33,15 +34,18 @@ void MainApp::on_configurationChanged(const settings_type &new_settings)
              << new_settings.adapter_address << ", "
              << new_settings.auto_copy_clipboard;
 
-    if (new_settings.adapter_address != bt_service_.adapterAddress()) {
+    if (new_settings.adapter_address != bt_service_->adapterAddress()) {
         qDebug() << "Need to restart bt service";
-        bt_service_.restart(new_settings.adapter_address);
+        bt_service_->restart(new_settings.adapter_address);
     }
 }
 
 void MainApp::on_quit()
 {
-    bt_service_.stop();
+    bt_service_->stop();
+    bt_service_->deleteLater();
+    dashboard_->deleteLater();
+    settings_->deleteLater();
     qApp->quit();
 }
 

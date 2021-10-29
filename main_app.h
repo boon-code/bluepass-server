@@ -24,9 +24,9 @@ private slots:
     void on_quit();
 
 private:
-    Settings settings_;
-    Dashboard dashboard_;
-    BluetoothService bt_service_;
+    Settings *settings_;
+    Dashboard *dashboard_;
+    BluetoothService *bt_service_;
 };
 
 #endif // MAIN_APP_H
