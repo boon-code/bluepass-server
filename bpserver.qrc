@@ -2,5 +2,6 @@
     <qresource prefix="/icons">
         <file>BluePassServer.ico</file>
         <file>BluePassServer2.ico</file>
+        <file>BluePassServer3.ico</file>
     </qresource>
 </RCC>

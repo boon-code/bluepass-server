@@ -2,8 +2,10 @@
 #include "ui_choose_adapter_dialog.h"
 
 #include <QBluetoothLocalDevice>
+#include <QDebug>
 
-ChooseAdapterDialog::ChooseAdapterDialog(QWidget *parent)
+
+ChooseAdapterDialog::ChooseAdapterDialog(const QString &current_adapter, QWidget *parent)
     : QDialog(parent),
       ui(new Ui::ChooseAdapterDialog),
       adapters_model_(),
@@ -14,6 +16,10 @@ ChooseAdapterDialog::ChooseAdapterDialog(QWidget *parent)
     ui->listAdapters->setSelectionModel(&selection_model_);
     refresh_timer_.start(2000);
     connect(&refresh_timer_, &QTimer::timeout, &adapters_model_, &BluetoothDeviceListModel::update);
+    connect(&selection_model_, &QItemSelectionModel::currentChanged, this, &ChooseAdapterDialog::showCurrent);
+    QModelIndex current = adapters_model_.indexOf(current_adapter);
+    selection_model_.setCurrentIndex(current, QItemSelectionModel::SelectionFlag::SelectCurrent);
+    showCurrent(current, QModelIndex());
 }
 
 ChooseAdapterDialog::~ChooseAdapterDialog()
@@ -26,7 +32,8 @@ void ChooseAdapterDialog::on_dbbOkCancel_accepted()
 {
     QVariant adapter;
 
-    if (selection_model_.hasSelection()) {
+    const QModelIndex index = selection_model_.currentIndex();
+    if (index.isValid()) {
         adapter = adapters_model_.data(selection_model_.currentIndex());
     }
 
@@ -41,4 +48,23 @@ void ChooseAdapterDialog::on_dbbOkCancel_accepted()
 void ChooseAdapterDialog::on_dbbOkCancel_rejected()
 {
     reject();
+}
+
+void ChooseAdapterDialog::showCurrent(const QModelIndex &current, const QModelIndex &previous)
+{
+    Q_UNUSED(previous);
+
+    if (current.isValid()) {
+        qDebug() << "valid index";
+        ui->labAdapter->setText(adapters_model_.data(current).toString());
+    } else {
+        qDebug() << "invalid index";
+        ui->labAdapter->setText(tr("No adapter selected"));
+    }
+}
+
+void ChooseAdapterDialog::showUnselected()
+{
+    QModelIndex invalid_index;
+    showCurrent(invalid_index, invalid_index);
 }

@@ -18,6 +18,8 @@ public:
 
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
+    QModelIndex indexOf(const QString& adapter) const;
+
 public slots:
     void update();
 

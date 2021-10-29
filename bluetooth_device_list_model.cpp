@@ -43,6 +43,15 @@ QVariant BluetoothDeviceListModel::data(const QModelIndex &index, int role) cons
     }
 }
 
+QModelIndex BluetoothDeviceListModel::indexOf(const QString &adapter) const
+{
+    int pos = devices_.indexOf(adapter);
+    if (pos == -1) {
+        return QModelIndex();
+    }
+    return index(pos);
+}
+
 void BluetoothDeviceListModel::update()
 {
     QStringList all;

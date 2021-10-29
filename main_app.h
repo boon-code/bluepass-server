@@ -4,6 +4,7 @@
 #include <QObject>
 #include "dashboard.h"
 #include "settings.h"
+#include "bluetooth_service.h"
 
 class MainApp : public QObject
 {
@@ -20,10 +21,12 @@ public slots:
 
 private slots:
     void on_configurationChanged(const settings_type &new_settings);
+    void on_quit();
 
 private:
     Settings settings_;
     Dashboard dashboard_;
+    BluetoothService bt_service_;
 };
 
 #endif // MAIN_APP_H

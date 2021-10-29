@@ -16,7 +16,7 @@ class ChooseAdapterDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ChooseAdapterDialog(QWidget *parent = nullptr);
+    explicit ChooseAdapterDialog(const QString& current_adapter, QWidget *parent = nullptr);
     ~ChooseAdapterDialog();
 
 signals:
@@ -26,6 +26,11 @@ private slots:
     void on_dbbOkCancel_accepted();
 
     void on_dbbOkCancel_rejected();
+
+    void showCurrent(const QModelIndex& current, const QModelIndex& previous);
+
+private:
+    void showUnselected();
 
 private:
     Ui::ChooseAdapterDialog *ui;

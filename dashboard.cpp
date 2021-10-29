@@ -5,6 +5,18 @@
 #include <QCloseEvent>
 #include <QMenu>
 #include <QDebug>
+#include <QBluetoothLocalDevice>
+#include <QClipboard>
+
+#define MAX_DISCOVERABLE_TIME_MS 60000
+
+
+enum IconState {
+    IconStateNormal,
+    IconStateDiscoverable,
+    IconStateDisabled,
+};
+
 
 Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     QMainWindow(parent),
@@ -15,14 +27,20 @@ Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     tray_action_open_(nullptr),
     tray_action_copy_(nullptr),
     tray_action_quit_(nullptr),
+    tray_action_make_discoverable_(nullptr),
     tray_icon_ok_(":/icons/BluePassServer.ico"),
-    tray_icon_no_adapter_(":/icons/BluePassServer2.ico"),
+    tray_icon_discoverable_(":/icons/BluePassServer2.ico"),
+    tray_icon_no_adapter_(":/icons/BluePassServer3.ico"),
     tray_(nullptr),
-    dummy_switch_(false)
+    discoverable_(false),
+    bt_service_started_(false)
 {
     ui->setupUi(this);
     updateSettingsView();
     setupTray();
+    on_configurationChanged(current_settings_);
+    connect(settings, &Settings::settingsChanged, this, &Dashboard::on_configurationChanged);
+    connect(&reset_discoverable_timer_, &QTimer::timeout, this, &Dashboard::on_resetDiscoverable);
 }
 
 void Dashboard::updateSettingsView()
@@ -46,6 +64,7 @@ Dashboard::~Dashboard()
     tray_action_open_ = nullptr;
     tray_action_copy_ = nullptr;
     tray_action_quit_ = nullptr;
+    tray_action_make_discoverable_ = nullptr;
     tray_ = nullptr;
 }
 
@@ -56,25 +75,27 @@ void Dashboard::start()
     tray_->show();
 }
 
-void Dashboard::dummyAction()
+void Dashboard::newCode(const QString &code)
 {
-    Q_ASSERT(tray_ != nullptr);
+    qDebug() << "Code received: " << code;
 
-    QIcon* icon = &tray_icon_ok_;
-
-    dummy_switch_ = !dummy_switch_;
-    if (dummy_switch_) {
-        tray_->setIcon(tray_icon_no_adapter_);
-        tray_->setToolTip(tr("No bluetooth adapater is available"));
-        tray_action_copy_->setEnabled(false);
-    } else {
-        tray_->setIcon(tray_icon_ok_);
-        tray_->setToolTip("");
-        tray_action_copy_->setEnabled(true);
-        icon = &tray_icon_no_adapter_;
+    if (settings_->autoCopyCode()) {
+        copyToClipboard(code);
     }
+    tray_->showMessage(tr("BluePass"), tr("Received code: %1").arg(code), tray_icon_ok_, 5000);
+}
 
-    tray_->showMessage(tr("Dummy action"), tr("Triggered dummy action"), *icon);
+void Dashboard::setBtServiceStarted()
+{
+    bt_service_started_ = true;
+    updateTrayIcon();
+}
+
+void Dashboard::setBtServiceStopped()
+{
+    bt_service_started_ = false;
+    discoverable_ = false;
+    updateTrayIcon();
 }
 
 void Dashboard::trayActivated(const QSystemTrayIcon::ActivationReason &reason)
@@ -86,7 +107,6 @@ void Dashboard::trayActivated(const QSystemTrayIcon::ActivationReason &reason)
         } else {
             hide();
         }
-        dummyAction();  // TODO: Remove
         break;
 
     default:
@@ -96,7 +116,42 @@ void Dashboard::trayActivated(const QSystemTrayIcon::ActivationReason &reason)
 
 void Dashboard::setAdapter(const QString &adapter)
 {
-    qDebug() << "Adapter " << adapter << " choosen";
+    current_settings_.adapter_address = adapter;
+    updateSettingsView();
+}
+
+void Dashboard::on_toggleDiscoverable()
+{
+    if (discoverable_) {
+        on_resetDiscoverable();
+    } else {
+        on_setDiscoverable();
+    }
+}
+
+void Dashboard::on_setDiscoverable()
+{
+    qDebug() << "Make adapter discoverable";
+    reset_discoverable_timer_.stop();
+    reset_discoverable_timer_.start(MAX_DISCOVERABLE_TIME_MS);
+    emit discoverableChanged(true);
+    discoverable_ = true;
+    updateDiscoverableText();
+    updateTrayIcon();
+}
+
+void Dashboard::on_resetDiscoverable()
+{
+    reset_discoverable_timer_.stop();
+    emit discoverableChanged(false);
+    discoverable_ = false;
+    updateDiscoverableText();
+    updateTrayIcon();
+}
+
+void Dashboard::on_configurationChanged(const settings_type &new_settings)
+{
+    tray_action_make_discoverable_->setEnabled(!new_settings.adapter_address.isEmpty());
 }
 
 void Dashboard::setupTray()
@@ -105,16 +160,19 @@ void Dashboard::setupTray()
     tray_action_open_ = new QAction(tr("Dashboard"), this);
     tray_action_copy_ = new QAction(tr("Copy last"), this);
     tray_action_quit_ = new QAction(tr("Quit"), this);
+    tray_action_make_discoverable_ = new QAction(tr("Make discoverable"), this);
 
     // Connect actions
     connect(tray_action_open_, &QAction::triggered, this, &Dashboard::show);
-    connect(tray_action_copy_, &QAction::triggered, this, &Dashboard::dummyAction);
-    connect(tray_action_quit_, &QAction::triggered, qApp, &QCoreApplication::quit);
+    connect(tray_action_quit_, &QAction::triggered, this, &Dashboard::quit);
+    connect(tray_action_make_discoverable_, &QAction::triggered, this, &Dashboard::on_toggleDiscoverable);
 
     // Create menu
     tray_menu_ = new QMenu(this);
     tray_menu_->addAction(tray_action_open_);
     tray_menu_->addAction(tray_action_copy_);
+    tray_menu_->addSeparator();
+    tray_menu_->addAction(tray_action_make_discoverable_);
     tray_menu_->addSeparator();
     tray_menu_->addAction(tray_action_quit_);
 
@@ -128,6 +186,41 @@ void Dashboard::closeEvent(QCloseEvent *event)
 {
     event->ignore();
     hide();
+}
+
+void Dashboard::copyToClipboard(const QString &code)
+{
+    QClipboard *clip = QApplication::clipboard();
+    if (clip == nullptr) {
+        qDebug() << "Couldn't get clipboard instance";
+        return;
+    }
+    if (code.isEmpty()) {
+        return;
+    }
+    clip->setText(code, QClipboard::Mode::Clipboard);
+}
+
+void Dashboard::updateDiscoverableText()
+{
+    if (discoverable_) {
+        tray_action_make_discoverable_->setText(tr("Stop discoverable"));
+    } else {
+        tray_action_make_discoverable_->setText(tr("Make discoverable"));
+    }
+}
+
+void Dashboard::updateTrayIcon()
+{
+    if (bt_service_started_) {
+        if (discoverable_) {
+            tray_->setIcon(tray_icon_discoverable_);
+        } else {
+            tray_->setIcon(tray_icon_ok_);
+        }
+    } else {
+        tray_->setIcon(tray_icon_no_adapter_);
+    }
 }
 
 void Dashboard::on_dbbOkCancel_accepted()
@@ -152,7 +245,7 @@ void Dashboard::on_chkCopyToClipboard_toggled(bool checked)
 
 void Dashboard::on_pbSelectAdapter_clicked()
 {
-    ChooseAdapterDialog *dialog = new ChooseAdapterDialog();
+    ChooseAdapterDialog *dialog = new ChooseAdapterDialog(current_settings_.adapter_address);
     connect(dialog, &ChooseAdapterDialog::adapterChosen, this, &Dashboard::setAdapter);
     dialog->exec();
     dialog->deleteLater();
