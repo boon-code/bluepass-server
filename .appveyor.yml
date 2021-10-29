@@ -9,7 +9,9 @@ after_build:
   - windeployqt release/BluePassServer.exe
   - rm release/*.o
   - rm release/*.cpp
+  - rm release/*.h
+  - mv release bluepass-server
 artifacts:
-  - path: release
+  - path: bluepass-server
     type: zip
 
