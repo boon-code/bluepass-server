@@ -2,6 +2,7 @@
 #define SETTINGS_TYPE_H
 
 #include <QString>
+#include <QMetaType>
 
 struct settings_type {
     QString adapter_address;
@@ -13,5 +14,7 @@ struct settings_type {
     bool operator!= (const settings_type& r) const;
     ~settings_type();
 };
+
+Q_DECLARE_METATYPE(settings_type)
 
 #endif // SETTINGS_TYPE_H
