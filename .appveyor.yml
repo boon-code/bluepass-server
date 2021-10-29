@@ -14,11 +14,12 @@ build_script:
   - sh: make -j 4
 after_build:
   - cmd: windeployqt release/BluePassServer.exe
-  - rm release/*.o
-  - rm release/*.cpp
-  - rm release/*.h
+  - cmd: rm release/*.o
+  - cmd: rm release/*.cpp
+  - cmd: rm release/*.h
   - cmd: mv release bluepass-server-win32
-  - sh: mv release bluepass-server-linux
+  - sh: mkdir bluepass-server-linux
+  - sh: cp BluePassServer bluepass-server-linux/
 artifacts:
   - path: bluepass-server-win32
     type: zip
