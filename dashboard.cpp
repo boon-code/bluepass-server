@@ -182,6 +182,7 @@ void Dashboard::setupTray()
     tray_ = new QSystemTrayIcon(tray_icon_ok_, this);
     tray_->setContextMenu(tray_menu_);
     connect(tray_, &QSystemTrayIcon::activated, this, &Dashboard::trayActivated);
+    connect(tray_, &QSystemTrayIcon::messageClicked, this, &Dashboard::on_copyLastKey);
 }
 
 void Dashboard::closeEvent(QCloseEvent *event)
