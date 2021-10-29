@@ -11,6 +11,7 @@
     }
 
 #define TRY_RESTART_SERVICE_MS 5000
+#define POLL_ADAPTER_STATUS_MS 5000
 
 static const QLatin1String BLUEPASS_UUID("e4d56fb3-b86d-4572-9b0d-44d483eb1eee");
 
@@ -20,11 +21,24 @@ BluetoothService::BluetoothService(QObject *parent)
       was_made_discoverable_(false)
 {
     connect(&retry_timer_, &QTimer::timeout, this, &BluetoothService::retryStart);
+    connect(&poll_status_timer_, &QTimer::timeout, this, &BluetoothService::updateAdapterStatus);
 }
 
 const QString BluetoothService::adapterAddress() const
 {
     return adapter_address_;
+}
+
+void BluetoothService::terminate()
+{
+    stop();
+    retry_timer_.stop();
+    poll_status_timer_.stop();
+}
+
+BluetoothService::~BluetoothService()
+{
+    terminate();
 }
 
 void BluetoothService::start(const QString& localAdapterAddress)
@@ -73,6 +87,7 @@ void BluetoothService::start(const QString& localAdapterAddress)
     info_.registerService(QBluetoothAddress(localAdapterAddress));
 
     qDebug() << "Bluetooth service started";
+    poll_status_timer_.start(POLL_ADAPTER_STATUS_MS);
     emit started();
 }
 
@@ -95,6 +110,7 @@ void BluetoothService::stop()
     }
 
     qDebug() << "Bluetooth service stopped";
+    poll_status_timer_.stop();
     emit stopped();
 }
 
@@ -178,6 +194,27 @@ void BluetoothService::retryStart()
         qDebug() << "Try to restart service on " << adapter_address_;
         start(adapter_address_);
     }
+}
+
+void BluetoothService::updateAdapterStatus()
+{
+    if (server_ != nullptr) {
+        bool is_available = isAdapterAvailable(adapter_address_);
+        if (!is_available) {
+            qDebug() << "Adapter " << adapter_address_ << " is not available anymore";
+            serverFailed();
+        }
+    }
+}
+
+bool BluetoothService::isAdapterAvailable(const QString &address)
+{
+    foreach (auto adapter, QBluetoothLocalDevice::allDevices()) {
+        if (address == adapter.address().toString()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void BluetoothService::tryReadSocket(QBluetoothSocket *socket)

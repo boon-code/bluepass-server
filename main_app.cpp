@@ -42,7 +42,7 @@ void MainApp::on_configurationChanged(const settings_type &new_settings)
 
 void MainApp::on_quit()
 {
-    bt_service_->stop();
+    bt_service_->terminate();
     bt_service_->deleteLater();
     dashboard_->deleteLater();
     settings_->deleteLater();

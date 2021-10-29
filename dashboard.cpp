@@ -96,6 +96,7 @@ void Dashboard::setBtServiceStopped()
     bt_service_started_ = false;
     discoverable_ = false;
     updateTrayIcon();
+    updateDiscoverableText();
 }
 
 void Dashboard::trayActivated(const QSystemTrayIcon::ActivationReason &reason)

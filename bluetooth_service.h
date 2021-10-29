@@ -11,6 +11,8 @@ class BluetoothService : public QObject
 public:
     explicit BluetoothService(QObject *parent = nullptr);
     const QString adapterAddress() const;
+    void terminate();
+    ~BluetoothService();
 
 signals:
     void codeReceived(const QString& code);
@@ -30,10 +32,12 @@ private slots:
     void readSocket();
     void listeningSocketError(const QBluetoothServer::Error &error);
     void retryStart();
+    void updateAdapterStatus();
 
 private:
     void tryReadSocket(QBluetoothSocket *socket);
     void serverFailed();
+    bool isAdapterAvailable(const QString& address);
 
 private:
     QBluetoothServer *server_;
@@ -42,6 +46,7 @@ private:
     QString adapter_address_;
     bool was_made_discoverable_;
     QTimer retry_timer_;
+    QTimer poll_status_timer_;
 };
 
 #endif // BLUETOOTH_SERVICE_H
