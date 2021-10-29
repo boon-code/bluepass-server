@@ -223,8 +223,10 @@ void BluetoothService::tryReadSocket(QBluetoothSocket *socket)
         QByteArray line = socket->readLine().trimmed();
         if (!line.isEmpty()) {
             emit codeReceived(QString::fromUtf8(line.constData(), line.length()));
+            break;
         }
     }
+    socket->close();
 }
 
 void BluetoothService::serverFailed()
