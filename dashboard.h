@@ -45,6 +45,7 @@ private slots:
     void on_dbbOkCancel_rejected();
     void on_chkCopyToClipboard_toggled(bool checked);
     void on_pbSelectAdapter_clicked();
+    void on_copyLastKey();
 
 private:
     void updateSettingsView();
@@ -73,6 +74,8 @@ private:
     QTimer reset_discoverable_timer_;
     bool discoverable_;
     bool bt_service_started_;
+
+    QString last_key_;
 };
 
 #endif // DASHBOARD_H

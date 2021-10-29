@@ -79,9 +79,15 @@ void Dashboard::newCode(const QString &code)
 {
     qDebug() << "Code received: " << code;
 
+    if (!code.isEmpty()) {
+        last_key_ = code;
+        tray_action_copy_->setEnabled(true);
+    }
+
     if (settings_->autoCopyCode()) {
         copyToClipboard(code);
     }
+
     tray_->showMessage(tr("BluePass"), tr("Received code: %1").arg(code), tray_icon_ok_, 5000);
 }
 
@@ -160,11 +166,13 @@ void Dashboard::setupTray()
     // Setup actions
     tray_action_open_ = new QAction(tr("Dashboard"), this);
     tray_action_copy_ = new QAction(tr("Copy last"), this);
+    tray_action_copy_->setEnabled(false);
     tray_action_quit_ = new QAction(tr("Quit"), this);
     tray_action_make_discoverable_ = new QAction(tr("Make discoverable"), this);
 
     // Connect actions
     connect(tray_action_open_, &QAction::triggered, this, &Dashboard::show);
+    connect(tray_action_copy_, &QAction::triggered, this, &Dashboard::on_copyLastKey);
     connect(tray_action_quit_, &QAction::triggered, this, &Dashboard::quit);
     connect(tray_action_make_discoverable_, &QAction::triggered, this, &Dashboard::on_toggleDiscoverable);
 
@@ -250,4 +258,11 @@ void Dashboard::on_pbSelectAdapter_clicked()
     connect(dialog, &ChooseAdapterDialog::adapterChosen, this, &Dashboard::setAdapter);
     dialog->exec();
     dialog->deleteLater();
+}
+
+void Dashboard::on_copyLastKey()
+{
+    if (!last_key_.isEmpty()) {
+        copyToClipboard(last_key_);
+    }
 }
