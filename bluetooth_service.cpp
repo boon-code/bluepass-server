@@ -78,7 +78,6 @@ void BluetoothService::start(const QString& localAdapterAddress)
     QBluetoothServiceInfo::Sequence protocol;
     protocol << QVariant::fromValue(QBluetoothUuid(QBluetoothUuid::ProtocolUuid::Rfcomm))
              << QVariant::fromValue(quint8(server_->serverPort()));
-    //protocolDescriptorList.append(QVariant::fromValue(protocol));
     protocolDescriptorList << QVariant::fromValue(protocol);
 
     info_.setAttribute(QBluetoothServiceInfo::ProtocolDescriptorList,

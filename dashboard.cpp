@@ -11,13 +11,6 @@
 #define MAX_DISCOVERABLE_TIME_MS 60000
 
 
-enum IconState {
-    IconStateNormal,
-    IconStateDiscoverable,
-    IconStateDisabled,
-};
-
-
 Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::Dashboard),
