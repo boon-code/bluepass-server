@@ -1,15 +1,28 @@
-image: Visual Studio 2019
+image:
+  - Ubuntu
+  - Visual Studio 2019
 install:
-  - set QTDIR=C:\Qt\5.15\mingw81_32
-  - set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw810_32\bin;%PATH%;
+  - cmd: set QTDIR=C:\Qt\5.15\mingw81_32
+  - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw810_32\bin;%PATH%;
+  - sh: export DEBIAN_FRONTEND=noninteractive
+  - sh: sudo apt-get update
+  - sh: sudo apt-get -y install libgl-dev
+  - sh: export PATH="$HOME/Qt/5.15.2/gcc_64/bin:$PATH"
 build_script:
   - qmake BluePassServer.pro
-  - mingw32-make
+  - cmd: mingw32-make
+  - sh: make -j 4
 after_build:
-  - windeployqt release/BluePassServer.exe
-  - rm release/*.o
-  - rm release/*.cpp
+  - cmd: windeployqt release/BluePassServer.exe
+  - cmd: rm release/*.o
+  - cmd: rm release/*.cpp
+  - cmd: rm release/*.h
+  - cmd: mv release bluepass-server-win32
+  - sh: mkdir bluepass-server-linux
+  - sh: cp BluePassServer bluepass-server-linux/
 artifacts:
-  - path: release
+  - path: bluepass-server-win32
+    type: zip
+  - path: bluepass-server-linux
     type: zip
 
