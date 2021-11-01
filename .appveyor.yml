@@ -25,4 +25,12 @@ artifacts:
     type: zip
   - path: bluepass-server-linux
     type: zip
-
+deploy:
+  description: bluepass-server release $(APPVEYOR_REPO_TAG_NAME)
+  provider: GitHub
+  auth_token:
+    secure: +4g1P7zwdrIxOI+fYb8+SVZXUDnxk1v9Aig1uMzCBtcw/L0rp+qCyfJHNrSwyTZp
+  draft: true
+  prerelease: false
+  on:
+    APPVEYOR_REPO_TAG: true
