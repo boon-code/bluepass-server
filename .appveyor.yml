@@ -1,5 +1,5 @@
 image:
-  - Ubuntu
+  - Ubuntu1604
   - Visual Studio 2019
 install:
   - cmd: set QTDIR=C:\Qt\5.15\mingw81_32
