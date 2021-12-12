@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Bluepass Server
+Comment=BluePass companion app
+Exec=BluePassServer
+Icon=BluePassServer
+Categories=Office;

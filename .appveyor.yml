@@ -1,13 +1,13 @@
 image:
-  - Ubuntu
+  - Ubuntu1604
   - Visual Studio 2019
 install:
   - cmd: set QTDIR=C:\Qt\5.15\mingw81_32
   - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw810_32\bin;%PATH%;
   - sh: export DEBIAN_FRONTEND=noninteractive
-  - sh: sudo apt-get update
-  - sh: sudo apt-get -y install libgl-dev
-  - sh: export PATH="$HOME/Qt/5.15.2/gcc_64/bin:$PATH"
+  - sh: ./ci/install-qt-dependencies.sh
+  - sh: ./ci/install-linuxdeployqt.sh $HOME/bin
+  - sh: export PATH="$HOME/Qt/5.15.2/gcc_64/bin:$HOME/bin:$PATH"
 build_script:
   - qmake BluePassServer.pro
   - cmd: mingw32-make
@@ -20,11 +20,13 @@ after_build:
   - cmd: mv release bluepass-server-win32
   - sh: mkdir bluepass-server-linux
   - sh: cp BluePassServer bluepass-server-linux/
+  - sh: VERSION=${APPVEYOR_REPO_TAG_NAME} ./ci/package-appimage-linux.sh
 artifacts:
   - path: bluepass-server-win32
     type: zip
   - path: bluepass-server-linux
     type: zip
+  - path: Bluepass_Server-*.AppImage
 deploy:
   description: bluepass-server release $(APPVEYOR_REPO_TAG_NAME)
   provider: GitHub
