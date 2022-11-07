@@ -2,6 +2,7 @@ image:
   - Ubuntu1604
   - Visual Studio 2019
 install:
+  - git submodule update --init --recursive
   - cmd: set QTDIR=C:\Qt\5.15\mingw81_32
   - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw810_32\bin;%PATH%;
   - sh: export DEBIAN_FRONTEND=noninteractive

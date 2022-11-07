@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 
 project(BluePassServer LANGUAGES CXX)
 
+option(HAS_VERSION "The project includes versioning information" ON)
+if(HAS_VERSION)
+    add_subdirectory(modules/c_git_version)
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
@@ -41,6 +46,11 @@ target_compile_definitions(BluePassServer PRIVATE
     -DQT_DEPRECATED_WARNINGS=1
     -DQT_DISABLE_DEPRECATED_BEFORE=0xFFFFFF
 )
+
+if(HAS_VERSION)
+    target_compile_definitions(BluePassServer PRIVATE -DHAS_VERSION=1)
+    target_link_libraries(BluePassServer c_git_version)
+endif()
 
 target_link_libraries(BluePassServer
     Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Bluetooth

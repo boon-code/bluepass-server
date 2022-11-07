@@ -7,6 +7,9 @@
 #include <QDebug>
 #include <QBluetoothLocalDevice>
 #include <QClipboard>
+#ifdef HAS_VERSION
+#include "c_git_version.h"
+#endif
 
 #define MAX_DISCOVERABLE_TIME_MS 60000
 
@@ -29,6 +32,7 @@ Dashboard::Dashboard(Settings *settings, QWidget *parent) :
     bt_service_started_(false)
 {
     ui->setupUi(this);
+    setTitle();
     updateSettingsView();
     setupTray();
     on_configurationChanged(current_settings_);
@@ -224,6 +228,15 @@ void Dashboard::updateTrayIcon()
     } else {
         tray_->setIcon(tray_icon_no_adapter_);
     }
+}
+
+void Dashboard::setTitle()
+{
+#ifdef HAS_VERSION
+    this->setWindowTitle(QString("BluePassServer %1").arg(c_git_version()));
+#else
+    this->setWindowTitle("BluePassServer");
+#endif
 }
 
 void Dashboard::on_dbbOkCancel_accepted()

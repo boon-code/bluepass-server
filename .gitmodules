@@ -1,0 +1,3 @@
+[submodule "modules/c_git_version"]
+	path = modules/c_git_version
+	url = https://github.com/boon-code/c-git-version.git

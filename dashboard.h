@@ -54,6 +54,7 @@ private:
     void copyToClipboard(const QString& code);
     void updateDiscoverableText();
     void updateTrayIcon();
+    void setTitle();
 
 private:
     Ui::Dashboard *ui;
