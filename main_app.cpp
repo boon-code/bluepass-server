@@ -3,6 +3,9 @@
 #include <QCoreApplication>
 #include <QDebug>
 
+#ifdef HAS_VERSION
+#include "c_git_version.h"
+#endif
 
 MainApp::MainApp(QObject *parent)
     : QObject(parent),
@@ -55,4 +58,13 @@ void MainApp::setOrganizationFields()
     QCoreApplication::setOrganizationName(ORG_NAME);
     QCoreApplication::setOrganizationDomain(ORG_NAME);
     QCoreApplication::setApplicationName(APP_NAME);
+
+#ifdef HAS_VERSION
+    QCoreApplication::setApplicationVersion(c_git_version());
+
+    qDebug() << "Version: " << c_git_version();
+    qDebug() << "Branch: " << c_git_branch();
+    qDebug() << "Hash: " << c_git_hash();
+    qDebug() << "Submodules: " << c_git_submodules();
+#endif
 }

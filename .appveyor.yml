@@ -2,22 +2,22 @@ image:
   - Ubuntu1604
   - Visual Studio 2019
 install:
+  - git submodule update --init --recursive
   - cmd: set QTDIR=C:\Qt\5.15\mingw81_32
   - cmd: set PATH=%QTDIR%\bin;C:\Qt\Tools\mingw810_32\bin;%PATH%;
   - sh: export DEBIAN_FRONTEND=noninteractive
   - sh: ./ci/install-qt-dependencies.sh
   - sh: ./ci/install-linuxdeployqt.sh $HOME/bin
-  - sh: export PATH="$HOME/Qt/5.15.2/gcc_64/bin:$HOME/bin:$PATH"
+  - sh: export QTDIR="$HOME/Qt/5.15.2/gcc_64"
+  - sh: export PATH="$QTDIR/bin:$HOME/bin:$PATH"
 build_script:
-  - qmake BluePassServer.pro
-  - cmd: mingw32-make
-  - sh: make -j 4
+  - cmd: cmake -G "Ninja" -DQt5_DIR=%QTDIR%\lib\Qt5 .
+  - sh: cmake -G "Ninja" -DQt5_DIR=$QTDIR/lib/cmake/Qt5 .
+  - ninja
 after_build:
-  - cmd: windeployqt release/BluePassServer.exe
-  - cmd: rm release/*.o
-  - cmd: rm release/*.cpp
-  - cmd: rm release/*.h
-  - cmd: mv release bluepass-server-win32
+  - cmd: mkdir bluepass-server-win32
+  - cmd: cp BluePassServer.exe bluepass-server-win32/
+  - cmd: windeployqt bluepass-server-win32/BluePassServer.exe
   - sh: mkdir bluepass-server-linux
   - sh: cp BluePassServer bluepass-server-linux/
   - sh: VERSION=${APPVEYOR_REPO_TAG_NAME} ./ci/package-appimage-linux.sh
